@@ -1,7 +1,11 @@
 package suong.demo.com.myapplication
 
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -13,10 +17,14 @@ import com.google.android.gms.maps.model.MarkerOptions
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+    private lateinit var location:Location
+    private lateinit var locationManager:LocationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+        locationManager = this.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,android.Manifest.permission.ACCESS_COARSE_LOCATION,android.Manifest.permission.INTERNET),123)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -34,10 +42,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+mMap.isMyLocationEnabled = true
+        if(Utils.isNetworkConnected(applicationContext))
+        {
+            if(ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED&& ActivityCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
+            {
+                return
+            }
+            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            updateLocation()
+        }else
+        {
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            updateLocation()
+        }
     }
+    fun checkGPS():Boolean
+    {
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+    fun updateLocation()
+    {
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude,location.longitude),15f))
+        mMap.addMarker(MarkerOptions().position(LatLng(location.latitude,location.longitude)))
+    }
+    onHand
 }
