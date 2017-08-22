@@ -1,6 +1,8 @@
 package suong.demo.com.myapplication
 
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.support.v7.app.AppCompatActivity
@@ -13,12 +15,15 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import java.util.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var location:Location
     private lateinit var locationManager:LocationManager
+    private lateinit var geocoder:Geocoder
+    private lateinit var address:List<Address>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +69,16 @@ mMap.isMyLocationEnabled = true
     fun updateLocation()
     {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude,location.longitude),15f))
-        mMap.addMarker(MarkerOptions().position(LatLng(location.latitude,location.longitude)))
+
+        geocoder = Geocoder(this,Locale.getDefault())
+        address = geocoder.getFromLocation(location.latitude,location.longitude,1)
+        if (address != null && address.size > 0) {
+            val addresses:Address = address.get(0)
+           val streetAddress:String =addresses.getAddressLine(0)
+            mMap.addMarker(MarkerOptions().position(LatLng(location.latitude,location.longitude)).title(streetAddress))
+        }
+
+
     }
-    onHand
+
 }
